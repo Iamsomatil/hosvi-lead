@@ -5,7 +5,8 @@
  */
 
 export interface FormData {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   email: string;
   city: string;
@@ -29,18 +30,28 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * Phone validation - accepts various US phone number formats
  */
-const PHONE_REGEX = /^[\+]?[1]?[\s\-\.]?[\(]?[2-9][0-8][0-9][\)]?[\s\-\.]?[0-9]{3}[\s\-\.]?[0-9]{4}$/;
+const PHONE_REGEX = /^[+]?[1]?[\s.-]?[(]?[2-9][0-8][0-9][)]?[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}$/;
 
 /**
  * Validate individual form fields
  */
 const validators = {
-  fullName: (value: string): string | undefined => {
-    if (!value.trim()) {
-      return 'Full name is required';
+  firstName: (value: string): string | undefined => {
+    if (!value?.trim()) {
+      return 'First name is required';
     }
     if (value.trim().length < 2) {
-      return 'Full name must be at least 2 characters';
+      return 'First name must be at least 2 characters';
+    }
+    return undefined;
+  },
+
+  lastName: (value: string): string | undefined => {
+    if (!value?.trim()) {
+      return 'Last name is required';
+    }
+    if (value.trim().length < 2) {
+      return 'Last name must be at least 2 characters';
     }
     return undefined;
   },
@@ -115,7 +126,8 @@ export const validateForm = (formData: FormData): FormErrors => {
   const errors: FormErrors = {};
 
   // Validate required fields
-  errors.fullName = validators.fullName(formData.fullName);
+  errors.firstName = validators.firstName(formData.firstName);
+  errors.lastName = validators.lastName(formData.lastName);
   errors.phone = validators.phone(formData.phone);
   errors.email = validators.email(formData.email);
   errors.city = validators.city(formData.city);
@@ -140,9 +152,19 @@ export const validateForm = (formData: FormData): FormErrors => {
  * @param value - Value to validate
  * @returns Error message or undefined if valid
  */
-export const validateField = (fieldName: keyof FormData, value: any): string | undefined => {
+export const validateField = <K extends keyof FormData>(
+  fieldName: K,
+  value: FormData[K]
+): string | undefined => {
   const validator = validators[fieldName as keyof typeof validators];
-  return validator ? validator(value) : undefined;
+  if (!validator) return undefined;
+  
+  // Type assertion to handle the different possible value types
+  if (typeof value === 'boolean') {
+    return (validator as (val: boolean) => string | undefined)(value);
+  } else {
+    return (validator as (val: string) => string | undefined)(value as string);
+  }
 };
 
 /**
