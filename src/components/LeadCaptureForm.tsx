@@ -28,17 +28,18 @@ const TIME_SLOTS = [
 
 // Cities - used in the form rendering
 const CITIES = [
-  'New York',
-  'Los Angeles',
-  'Chicago',
-  'Houston',
-  'Phoenix',
-  'Philadelphia',
-  'San Antonio',
-  'San Diego'
+  'Tampa',
+  'Orlando',
+  'Miami',
+  'Fort Lauderdale'
 ] as const;
 
 const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string>('');
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -57,11 +58,6 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
     field: K,
     value: FormData[K]
   ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
     // If service type changes, reset subService
     if (field === 'serviceType') {
       setFormData(prev => ({
@@ -69,7 +65,11 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
         serviceType: value as string,
         subService: ''
       }));
-      return;
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
 
     // Clear error when user starts typing
@@ -81,32 +81,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
     }
   };
 
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string>('');
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-
-  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
-    // If service type changes, reset subService
-    if (field === 'serviceType') {
-      setFormData(prev => ({ 
-        ...prev, 
-        serviceType: value as string,
-        subService: '' // Reset subService when serviceType changes
-      }));
-      return;
-    }
-
-    // Clear error when user starts typing
-    if (field in formErrors) {
-      setFormErrors(prev => ({
-        ...prev,
-        [field]: validateField(field, value)
-      }));
-    }
-  };
-
-  const handleBlur = (field: keyof FormData) => {
+  const handleBlur = <K extends keyof FormData>(field: K) => {
     const error = validateField(field, formData[field]);
     setFormErrors(prev => ({
       ...prev,
@@ -282,7 +257,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                 type="tel"
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
+                onChange={(e) => handleFieldChange("phone", e.target.value)}
                 onBlur={() => handleBlur("phone")}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   formErrors.phone ? "border-red-500" : "border-gray-300"
@@ -302,7 +277,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                     type="checkbox"
                     checked={formData.whatsappOptIn}
                     onChange={(e) =>
-                      handleInputChange("whatsappOptIn", e.target.checked)
+                      handleFieldChange("whatsappOptIn", e.target.checked)
                     }
                     className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
@@ -323,7 +298,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                 type="email"
                 id="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                onChange={(e) => handleFieldChange("email", e.target.value)}
                 onBlur={() => handleBlur("email")}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   formErrors.email ? "border-red-500" : "border-gray-300"
@@ -350,7 +325,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                   id="city"
                   value={formData.city}
                   onChange={(e) =>
-                    handleInputChange("city", e.target.value)
+                    handleFieldChange("city", e.target.value)
                   }
                   onBlur={() => handleBlur("city")}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none ${
@@ -403,7 +378,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                       value={service}
                       checked={formData.serviceType === service}
                       onChange={(e) =>
-                        handleInputChange("serviceType", e.target.value)
+                        handleFieldChange("serviceType", e.target.value)
                       }
                       onBlur={() => handleBlur("serviceType")}
                       className="sr-only"
@@ -442,7 +417,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                     id="subService"
                     value={formData.subService}
                     onChange={(e) =>
-                      handleInputChange("subService", e.target.value)
+                      handleFieldChange("subService", e.target.value)
                     }
                     onBlur={() => handleBlur("subService")}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none ${
@@ -490,7 +465,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                   id="preferredTime"
                   value={formData.preferredTime}
                   onChange={(e) =>
-                    handleInputChange("preferredTime", e.target.value)
+                    handleFieldChange("preferredTime", e.target.value)
                   }
                   onBlur={() => handleBlur("preferredTime")}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none ${
@@ -536,7 +511,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                 id="notes"
                 rows={3}
                 value={formData.notes}
-                onChange={(e) => handleInputChange("notes", e.target.value)}
+                onChange={(e) => handleFieldChange("notes", e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Any additional information or special requests..."
               />
@@ -551,7 +526,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ utmParams }) => {
                     type="checkbox"
                     checked={formData.consent}
                     onChange={(e) =>
-                      handleInputChange("consent", e.target.checked)
+                      handleFieldChange("consent", e.target.checked)
                     }
                     onBlur={() => handleBlur("consent")}
                     className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
