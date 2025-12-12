@@ -132,11 +132,11 @@ const App: React.FC = () => {
                   <ul className="mt-4 space-y-4">
                     <li className="flex">
                       <MapPin className="h-6 w-6 text-gray-300 mr-2" />
-                      <span className="text-base text-gray-300">123 Health St, City, State 12345</span>
+                      <span className="text-base text-gray-300">6421 N. Florida Ave <br />Suite D-1130 <br />Tampa, FL 33604</span>
                     </li>
                     <li className="flex">
                       <Phone className="h-6 w-6 text-gray-300 mr-2" />
-                      <span className="text-base text-gray-300">(555) 123-4567</span>
+                      <span className="text-base text-gray-300">(754) 207-0982</span>
                     </li>
                     <li className="flex">
                       <Mail className="h-6 w-6 text-gray-300 mr-2" />
